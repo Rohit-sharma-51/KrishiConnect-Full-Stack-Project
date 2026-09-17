@@ -5,26 +5,16 @@ import toast from 'react-hot-toast';
 const PaymentExample = ({ productDetails, quantity }) => {
     const [orderPlaced, setOrderPlaced] = useState(false);
 
-    // Calculate total amount
     const totalAmount = productDetails?.price * quantity || 0;
 
     const handlePaymentSuccess = async (paymentResponse) => {
         try {
-            // Here you can update your order status in the database
             console.log('Payment successful:', paymentResponse);
 
-            // Example: Update order status
-            // await axios.post('/api/orders/update', {
-            //   orderId: orderDetails.id,
-            //   paymentId: paymentResponse.paymentId,
-            //   status: 'paid'
-            // });
 
             setOrderPlaced(true);
             toast.success('Order placed successfully!');
 
-            // Redirect to order confirmation page
-            // navigate('/orders/confirmation');
         } catch (error) {
             console.error('Error updating order:', error);
             toast.error('Payment successful but order update failed. Please contact support.');

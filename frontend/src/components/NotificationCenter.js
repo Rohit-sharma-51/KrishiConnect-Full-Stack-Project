@@ -242,13 +242,15 @@ const NotificationCenter = ({ user, onNotificationUpdate }) => {
                           onClick={() => handleApproveRequest(notification)}
                           className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
                         >
-                          Approve
+                          {/* ✅  */}
+                          {/* <span style={{font-size:"30px"}}>✅</span> */}
+                          <span style={{ fontSize: "20px" }}>✅</span>
                         </button>
                         <button
                           onClick={() => handleRejectRequest(notification)}
                           className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
                         >
-                          Reject
+                          ❌
                         </button>
                       </div>
                     )}

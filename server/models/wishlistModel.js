@@ -35,7 +35,6 @@ const wishlistSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure unique buyer-product combinations
 wishlistSchema.index({ buyer: 1, product: 1 }, { unique: true });
 
 module.exports = mongoose.model('Wishlist', wishlistSchema); 

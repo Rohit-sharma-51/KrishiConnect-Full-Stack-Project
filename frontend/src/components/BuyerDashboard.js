@@ -276,7 +276,8 @@ const BuyerDashboard = () => {
       const response = await axios.post('/api/buy-request', {
         productId: selectedProduct._id,
         quantity: buyQuantity,
-        message: `I want to buy ${buyQuantity} units of ${selectedProduct.name}`
+        // message: `I want to buy ${buyQuantity} units of ${selectedProduct.name}`
+        message: `मैं ${selectedProduct.name} की ${buyQuantity} इकाई खरीदना चाहता हूँ।`
       });
 
       toast.success('Buy request sent successfully!');
@@ -522,77 +523,103 @@ const BuyerDashboard = () => {
     </div>
   );
 
-  const renderMarketplace = () => (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">{t.marketplace}</h2>
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="border border-gray-300 rounded px-3 py-2"
-          />
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            <FaSearch />
-          </button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{height:"240px"}}>
-        {products.map((product) => (
-          <motion.div
-            key={product._id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
-          >
-            
-            <div className="p-4">
-              <h3 className="text-lg font-semibold">{product.name}</h3>
-              <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-blue-600">₹{product.price}/{product.unit}</span>
-                <span className="text-sm text-gray-500">{product.availableQuantity} {product.unit} available</span>
-              </div>
-              <div className="mt-3">
-                <span className="text-sm text-gray-500">By:Rohit Sharma </span>
-                {/* {product.farmerId?.fullName} */}
-                <span className="text-sm text-gray-500 ml-2">•Jewar, Uttar Pradesh </span>
-                {/* {product.location?.city}, {product.location?.state} */}
-              </div>
-              <div className="mt-3 flex space-x-2">
-                <button
-                  onClick={() => addToWishlist(product)}
-                  className="text-red-500 hover:text-red-700"
-                  title="Add to Wishlist"
-                >
-                  <FaHeart />
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedProduct(product);
-                    setShowBuyModal(true);
-                  }}
-                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 flex-1"
-                >
-                  Buy Now
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedProduct(product);
-                    setShowContactModal(true);
-                  }}
-                  className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
-                >
-                  Contact
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+
+  const renderMarketplace = () => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-2xl font-bold">{t.marketplace}</h2>
+
+      <div className="flex space-x-2">
+        <input
+          type="text"
+          placeholder="Search products..."
+          className="border border-gray-300 rounded px-3 py-2"
+        />
+
+        <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <FaSearch />
+        </button>
       </div>
     </div>
-  );
+
+    {/* Products */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {products.map((product) => (
+        <motion.div
+          key={product._id}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-lg shadow-md overflow-hidden h-[180px]"
+        >
+          <div className="p-4 flex flex-col h-full">
+
+            <h3 className="text-lg font-semibold">
+              {product.name}
+            </h3>
+
+            <p className="text-gray-600 text-sm mb-2">
+              {product.description}
+            </p>
+
+            <div className="flex justify-between items-center">
+              <span className="text-xl font-bold text-blue-600">
+                ₹{product.price} {product.unit}
+              </span>
+
+              <span className="text-sm text-gray-500">
+                {product.availableQuantity} {product.unit} available
+              </span>
+            </div>
+
+            <div className="mt-3">
+              <span className="text-sm text-gray-500">
+                By: Rohit Sharma
+              </span>
+
+              <span className="text-sm text-gray-500 ml-2">
+                • Jewar, Uttar Pradesh
+              </span>
+            </div>
+
+            
+            <div className="flex space-x-2 mt-3">
+              <button
+                onClick={() => addToWishlist(product)}
+                className="text-red-500 hover:text-red-700"
+                title="Add to Wishlist"
+              >
+                <FaHeart />
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setShowBuyModal(true);
+                }}
+                className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 flex-1"
+              >
+                Buy Now
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setShowContactModal(true);
+                }}
+                className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+              >
+                Contact
+              </button>
+            </div>
+
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+);
+
 
   const renderAnalytics = () => (
     <div className="space-y-6">
@@ -714,7 +741,7 @@ const BuyerDashboard = () => {
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            {['overview', 'marketplace', 'analytics', 'notifications', 'wishlist', 'ai-insights'].map((tab) => (
+            {['overview', 'marketplace', 'analytics', 'notifications'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -724,6 +751,8 @@ const BuyerDashboard = () => {
                   }`}
               >
                 {tab === 'ai-insights' ? 'AI Insights' : t[tab]}
+                {/* {tab === 'ai-insights' ? t[tab] : 'AI Insights'} */}
+
               </button>
             ))}
           </div>

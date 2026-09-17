@@ -24,12 +24,15 @@ Provides smart recommendations based on market data.
 🧱 Tech Stack
 
 Frontend
+
 React.js
 Bootstrap
 
 Backend
+
 Node.js
 Express.js
 
 Database
+
 MongoDB with Mongoose

@@ -19,15 +19,8 @@ const productSchema = mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["grains", "vegetables", "fruits", "dairy", "poultry", "other"]
     },
-    subCategory: {
-      type: String
-    },
-    description: {
-      type: String,
-      required: true
-    },
+    
     price: {
       type: Number,
       required: true
@@ -35,7 +28,6 @@ const productSchema = mongoose.Schema(
     unit: {
       type: String,
       required: true,
-      enum: ["kg", "quintal", "ton", "dozen", "piece", "litre"]
     },
     quantity: {
       type: Number,
@@ -45,9 +37,7 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: true
     },
-    images: [{
-      type: String
-    }],
+    
     location: {
       state: String,
       city: String,
@@ -59,23 +49,12 @@ const productSchema = mongoose.Schema(
     expiryDate: {
       type: Date
     },
-    isOrganic: {
-      type: Boolean,
-      default: false
-    },
+   
     isAvailable: {
       type: Boolean,
       default: true
     },
-    rating: {
-      type: Number,
-      default: 0
-    },
-    totalRatings: {
-      type: Number,
-      default: 0
-    },
-    tags: [String]
+    
   },
   {
     timestamps: true

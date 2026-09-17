@@ -28,29 +28,29 @@ const AddProduct = () => {
   const [loading, setLoading] = useState(false);
 
   const categories = [
-    { value: 'grains', label: 'Grains' },
-    { value: 'vegetables', label: 'Vegetables' },
-    { value: 'fruits', label: 'Fruits' },
-    { value: 'dairy', label: 'Dairy' },
-    { value: 'poultry', label: 'Poultry' },
-    { value: 'other', label: 'Other' }
+  { value: 'grains', label: 'अनाज' },
+  { value: 'vegetables', label: 'सब्जियाँ' },
+  { value: 'fruits', label: 'फल' },
+  { value: 'other', label: 'अन्य' }
   ];
 
   const units = [
-    { value: 'kg', label: 'Kilogram (kg)' },
-    { value: 'quintal', label: 'Quintal' },
-    { value: 'ton', label: 'Ton' },
-    { value: 'dozen', label: 'Dozen' },
-    { value: 'piece', label: 'Piece' },
-    { value: 'litre', label: 'Litre' }
+    { value: 'kg', label: '(kg) किलोग्राम' },
+
+{ value: 'quintal', label: 'क्विंटल' },
+{ value: 'ton', label: 'टन' },
+{ value: 'dozen', label: 'दर्जन' },
   ];
 
   const states = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
-    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+ 'उत्तर प्रदेश',
+'बिहार',
+'राजस्थान',
+'महाराष्ट्र',
+'गुजरात',
+'पंजाब',
+'हरियाणा',
+'पश्चिम बंगाल'
   ];
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -119,7 +119,13 @@ const AddProduct = () => {
           className="bg-white rounded-lg shadow-md p-6"
         >
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
+            <h1 className="text-2xl font-bold text-gray-900">नई फसल जोड़ें
+              <div className="flex items-center gap-4 mt-2">
+              <img src="/wheat.jpg" alt="wheat" style={{height:"100px"}}></img>
+              <img src="/tomato.png" alt="tomato" style={{height:"100px"}}></img>
+              <img src="/rice.jpg" alt="rice" style={{height:"100px"}}></img>
+              </div>
+              </h1>
             <button
               onClick={() => navigate('/dashboard')}
               className="text-gray-500 hover:text-gray-700"
@@ -133,7 +139,7 @@ const AddProduct = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Name *
+                  उत्पाद का नाम *
                 </label>
                 <input
                   type="text"
@@ -142,13 +148,13 @@ const AddProduct = () => {
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter product name"
+                  placeholder=" उत्पाद का नाम डालें"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                  फसल चुनें *
                 </label>
                 <select
                   name="category"
@@ -157,7 +163,7 @@ const AddProduct = () => {
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select category</option>
+                  <option value="">फसल चुनें *</option>
                   {categories.map(category => (
                     <option key={category.value} value={category.value}>
                       {category.label}
@@ -166,23 +172,11 @@ const AddProduct = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sub Category
-                </label>
-                <input
-                  type="text"
-                  name="subCategory"
-                  value={formData.subCategory}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Basmati Rice, Organic Tomatoes"
-                />
-              </div>
+              
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Unit *
+                 वजन का माप चुनें
                 </label>
                 <select
                   name="unit"
@@ -201,7 +195,7 @@ const AddProduct = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price per Unit (₹) *
+                  प्रति इकाई कीमत (₹) *
                 </label>
                 <input
                   type="number"
@@ -218,7 +212,7 @@ const AddProduct = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Available Quantity *
+                  उपलब्ध मात्रा *
                 </label>
                 <input
                   type="number"
@@ -228,32 +222,19 @@ const AddProduct = () => {
                   required
                   min="1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter quantity"
+                  placeholder="उत्पाद की मात्रा लिखें"
                 />
               </div>
             </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-                rows="4"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe your product in detail..."
-              />
-            </div>
+           
+          
 
             {/* Location */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State *
+                   राज्य *
                 </label>
                 <select
                   name="state"
@@ -262,7 +243,7 @@ const AddProduct = () => {
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select state</option>
+                  <option value="">राज्य चुनें</option>
                   {states.map(state => (
                     <option key={state} value={state}>
                       {state}
@@ -273,7 +254,7 @@ const AddProduct = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
+                पता
                 </label>
                 <input
                   type="text"
@@ -282,133 +263,24 @@ const AddProduct = () => {
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter city"
+                  placeholder="अपना पता लिखें"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter address"
-                />
-              </div>
+              
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Harvest Date
-                </label>
-                <input
-                  type="date"
-                  name="harvestDate"
-                  value={formData.harvestDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Expiry Date
-                </label>
-                <input
-                  type="date"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+             
             </div>
 
             {/* Additional Options */}
             <div className="space-y-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="isOrganic"
-                  checked={formData.isOrganic}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 block text-sm text-gray-900">
-                  Organic Product
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tags (comma separated)
-                </label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., fresh, local, premium, seasonal"
-                />
-              </div>
+              
             </div>
 
-            {/* Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Images (Max 5)
-              </label>
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <input {...getInputProps()} />
-                <FaUpload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                {isDragActive ? (
-                  <p className="text-blue-600">Drop the images here...</p>
-                ) : (
-                  <div>
-                    <p className="text-gray-600">
-                      Drag & drop images here, or click to select files
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      PNG, JPG, JPEG, WEBP up to 5 files
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Preview Images */}
-              {images.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={URL.createObjectURL(image)}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                      >
-                        <FaTimes className="text-xs" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4">
@@ -417,7 +289,7 @@ const AddProduct = () => {
                 onClick={() => navigate('/dashboard')}
                 className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                रद्द करें
               </button>
               <button
                 type="submit"
@@ -429,7 +301,7 @@ const AddProduct = () => {
                 ) : (
                   <FaSave />
                 )}
-                <span>{loading ? 'Adding...' : 'Add Product'}</span>
+                <span>{loading ? 'Adding...' : 'उत्पाद जोड़ें'}</span>
               </button>
             </div>
           </form>

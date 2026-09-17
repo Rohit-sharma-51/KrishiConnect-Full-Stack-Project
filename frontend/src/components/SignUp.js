@@ -16,7 +16,7 @@ const SignUp = () => {
   const [user, setUser] = useState({
     fullname: "",
     phone: "",
-    email: "",
+    // email: "",
     password: "",
     country: "",
     userType: "buyer",
@@ -27,16 +27,19 @@ const SignUp = () => {
   });
 
   const states = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
-    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+   
+    'उत्तर प्रदेश',
+'बिहार',
+'राजस्थान',
+'महाराष्ट्र',
+'गुजरात',
+'पंजाब',
+'हरियाणा'
   ];
 
   const onSignup = async () => {
     try {
-      if (!user.fullname || !user.email || !user.password || !user.phone || !user.userType) {
+      if (!user.fullname || !user.password || !user.phone || !user.userType) {
         toast.error("Please fill all required fields");
         return;
       }
@@ -63,8 +66,11 @@ const SignUp = () => {
       <div className="flex flex-col w-[25rem] mt-[5vh] container gap-[1.5rem] mx-auto mb-[5rem]">
         <div>
           <h1 className="merriweather-font font-bold text-[2rem]">
-            Create Your Account
+           Create Your Account
+           (अपना अकाउंट बनाएं)
+
           </h1>
+           सारी जानकारी भरने के बाद नीचे दिए गए “Create Account” बटन पर क्लिक करें।
           <p className="text-gray-600 mt-2">Join KrishiConnect as a farmer or buyer</p>
         </div>
 
@@ -76,7 +82,7 @@ const SignUp = () => {
             value={user.fullname}
             id="fullname"
             onChange={(e) => setUser({ ...user, fullname: e.target.value })}
-            placeholder="Enter your full name"
+            placeholder="अपना पूरा नाम लिखें or Enter your full name"
           />
         </div>
 
@@ -88,21 +94,11 @@ const SignUp = () => {
             onChange={(e) => setUser({ ...user, userType: e.target.value })}
           >
             <option value="buyer">Buyer</option>
-            <option value="farmer">Farmer</option>
+            <option value="farmer">किसान</option>
           </select>
         </div>
 
-        <div className="flex flex-col">
-          <h2 className="merriweather-font font-bold text-[1rem]">Preferred Language</h2>
-          <select
-            className="border-2 border-zinc-300 px-[1rem] py-[0.6rem] rounded-md"
-            value={user.language}
-            onChange={(e) => setUser({ ...user, language: e.target.value })}
-          >
-            <option value="english">English</option>
-            <option value="hindi">हिंदी (Hindi)</option>
-          </select>
-        </div>
+       
 
         <div className="flex flex-col">
           <h2 className="merriweather-font font-bold text-[1rem]">Phone Number *</h2>
@@ -112,21 +108,11 @@ const SignUp = () => {
             value={user.phone}
             id="phone"
             onChange={(e) => setUser({ ...user, phone: e.target.value })}
-            placeholder="Enter your phone number"
+            placeholder="अपना फोन नंबर लिखें or Enter your phone number"
           />
         </div>
 
-        <div className="flex flex-col">
-          <h2 className="merriweather-font font-bold text-[1rem]">Email Address *</h2>
-          <input
-            type="email"
-            className="border-2 border-zinc-300 px-[1rem] py-[0.6rem] rounded-md"
-            value={user.email}
-            id="email"
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
-            placeholder="Enter your email address"
-          />
-        </div>
+        
 
         <div className="flex flex-col">
           <h2 className="merriweather-font font-bold text-[1rem]">Password *</h2>
@@ -136,7 +122,7 @@ const SignUp = () => {
             id="password"
             value={user.password}
             onChange={(e) => setUser({ ...user, password: e.target.value })}
-            placeholder="Create a strong password"
+            placeholder="अपना पासवर्ड लिखें or Create a strong password"
           />
         </div>
 
@@ -148,7 +134,7 @@ const SignUp = () => {
             value={user.country}
             id="country"
             onChange={(e) => setUser({ ...user, country: e.target.value })}
-            placeholder="Enter your country"
+            placeholder="अपना देश लिखें or Enter your country"
           />
         </div>
 
@@ -159,7 +145,7 @@ const SignUp = () => {
             value={user.state}
             onChange={(e) => setUser({ ...user, state: e.target.value })}
           >
-            <option value="">Select your state</option>
+            <option value="">अपना राज्य चुनें or Select your state</option>
             {states.map(state => (
               <option key={state} value={state}>{state}</option>
             ))}
@@ -173,7 +159,7 @@ const SignUp = () => {
             className="border-2 border-zinc-300 px-[1rem] py-[0.6rem] rounded-md"
             value={user.city}
             onChange={(e) => setUser({ ...user, city: e.target.value })}
-            placeholder="Enter your city"
+            placeholder="अपना शहर या गाँव लिखें or Enter your city"
           />
         </div>
 
@@ -183,7 +169,7 @@ const SignUp = () => {
             className="border-2 border-zinc-300 px-[1rem] py-[0.6rem] rounded-md"
             value={user.address}
             onChange={(e) => setUser({ ...user, address: e.target.value })}
-            placeholder="Enter your address"
+            placeholder="अपना पता लिखें or Enter your address"
             rows="3"
           />
         </div>
@@ -205,6 +191,14 @@ const SignUp = () => {
               Sign In
             </span>
           </p>
+          <b>OR</b><br></br>
+          <p>अगर आपने पहले से अकाउंट बना रखा है, तो “Sign In” बटन पर क्लिक करें = <span
+              className="text-blue-600 cursor-pointer hover:underline"
+              onClick={() => navigate("/login")}
+            >
+              Sign In
+            </span></p>
+
         </div>
       </div>
     </>

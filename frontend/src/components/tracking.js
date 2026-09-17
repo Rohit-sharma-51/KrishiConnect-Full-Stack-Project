@@ -8,45 +8,13 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import TrackingSection from "./TrackingSection";
 
 const TrackingSupport = () => {
-  // const [trackingNumber, setTrackingNumber] = useState("");
-
-  // const handleTrackingInputChange = (e) => {
-  //   setTrackingNumber(e.target.value);
-  // };
-
-  // const handleTrackParcel = () => {
-  //   // Implement tracking logic here
-  // };
+  
 
   return (
     <div className="flex flex-col w-[90%] mx-auto pt-[2rem] pb-[3rem] bg-gray-50">
-      {/* Hero Section
-      <div className="text-center mb-[3rem]">
-        <h1 className="text-[3rem] font-bold text-[#2874fc] mb-[1rem]">
-          Track Your Parcel
-        </h1>
-        <p className="text-[1.25rem] text-gray-700 max-w-2xl mx-auto">
-          Enter your tracking number to get real-time updates on your parcel's
-          status.
-        </p>
-      </div> */}
+      
 
-      {/* Tracking Input Section
-      <div className="flex justify-center items-center mb-[3rem]">
-        <input
-          type="text"
-          placeholder="Enter Tracking Number"
-          value={trackingNumber}
-          onChange={handleTrackingInputChange}
-          className="w-[60%] md:w-[50%] p-[0.75rem] border-2 border-[#2874fc] rounded-l-lg text-[1.2rem] focus:outline-none"
-        />
-        <button
-          onClick={handleTrackParcel}
-          className="bg-[#2874fc] text-white p-[0.75rem] rounded-r-lg hover:bg-[#1a63d8] transition duration-300 .ml-20"
-        >
-          Track
-        </button>
-      </div> */}
+      
       <TrackingSection></TrackingSection>
 
       {/* FAQs Section */}

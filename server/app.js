@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 require('./db/connection');
 const jwt = require('jsonwebtoken');
@@ -11,10 +12,8 @@ const socketIo = require('socket.io');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const compression = require('compression');
-const analyticsService = require('./services/analyticsService');
 
 const paymentController = require('./controllers/paymentController');
-require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
@@ -32,7 +31,7 @@ const Product = require('./models/productModel');
 const Order = require('./models/orderModel');
 const MarketData = require('./models/marketDataModel');
 const Notification = require('./models/notificationModel');
-// const Wishlist = require('./models/wishlistModel');
+const Wishlist = require('./models/wishlistModel');
 
 
 // Middleware
@@ -42,12 +41,13 @@ app.use(cors());
 app.use(helmet());
 app.use(compression());
 
-// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    message: "Too many login attempts. Please try again later."
+  }
 });
-app.use(limiter);
 
 // File upload configuration
 const storage = multer.diskStorage({
@@ -78,28 +78,39 @@ io.on('connection', (socket) => {
 });
 
 // Helper function to send notifications
-const sendNotification = async (userId, title, message, type = 'general', relatedId = null) => {
+const sendNotification = async (
+  recipient,
+  sender,
+  title,
+  message,
+  type,
+  productId = null,
+  orderId = null
+) => {
   try {
     const notification = new Notification({
-      userId,
+      recipient,
+      sender,
       title,
       message,
       type,
-      relatedId
+      productId,
+      orderId
     });
+
     await notification.save();
 
-    // Send real-time notification via Socket.IO
-    io.to(userId.toString()).emit('notification', {
-      title,
-      message,
-      type,
-      timestamp: new Date()
+    // Send real-time notification
+    io.to(recipient.toString()).emit('notification', {
+      recipient: recipient.toString(),
+      notification
     });
+
   } catch (error) {
     console.error('Error sending notification:', error);
   }
 };
+
 
 // Authentication middleware
 const authenticateToken = async (req, res, next) => {
@@ -135,19 +146,33 @@ app.get('/', (req, res) => {
 });
 
 // User Registration with user type
-app.post('/api/register', async (req, res) => {
+app.post('/api/register',limiter,  async (req, res) => {
   try {
-    const { fullname, phone, email, password, country, userType, language, state, city, address } = req.body;
+    const {
+      fullname,
+      phone,
+      password,
+      country,
+      userType,
+      state,
+      city,
+      address
+    } = req.body;
 
-    if (!fullname || !email || !password || !phone || !userType) {
-      return res.status(400).json({ message: 'Please fill all required details', status: 400 });
+    if (!fullname || !password || !phone || !userType) {
+      return res.status(400).json({
+        message: 'Please fill all required details',
+        status: 400
+      });
     }
 
-    const isAlreadyExist = await Users.findOne({ email });
     const isUserAlreadyExist = await Users.findOne({ phone });
 
-    if (isAlreadyExist || isUserAlreadyExist) {
-      return res.status(400).json({ message: 'User Already Exists', status: 400 });
+    if (isUserAlreadyExist) {
+      return res.status(400).json({
+        message: 'Phone number already exists',
+        status: 400
+      });
     }
 
     const salt = await bcryptjs.genSalt(10);
@@ -155,11 +180,9 @@ app.post('/api/register', async (req, res) => {
 
     const newUser = new Users({
       fullName: fullname,
-      email,
       password: hashedpassword,
       phone,
       userType,
-      language: language || 'english',
       country,
       state,
       city,
@@ -172,56 +195,90 @@ app.post('/api/register', async (req, res) => {
 
     // Send welcome notification
     await sendNotification(
-      newUser._id,
-      'Welcome to KrishiConnect!',
-      `Welcome ${fullname}! You've successfully registered as a ${userType}.`,
-      'general'
-    );
+    newUser._id,
+    newUser._id,
+    'KrishiConnect में आपका स्वागत है!',
+    `नमस्ते ${fullname}! आपने ${userType} के रूप में सफलतापूर्वक पंजीकरण किया है।`,
+    'approval'
+);
+    
 
-    return res.status(200).json({ message: 'User Registered Successfully', status: 200 });
+    return res.status(200).json({
+      message: 'User Registered Successfully',
+      status: 200
+    });
+
   } catch (error) {
     console.log(error, "signup backend error");
-    return res.status(500).json({ message: 'Internal Server Error', status: 500 });
+
+    return res.status(500).json({
+      message: 'Internal Server Error',
+      status: 500
+    });
   }
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login',limiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Please fill all the required details', status: 400 });
+    const { phone, password } = req.body;
+
+    if (!phone || !password) {
+      return res.status(400).json({
+        message: 'Please fill all the required details',
+        status: 400
+      });
     }
 
-    const user = await Users.findOne({ email });
+    const user = await Users.findOne({ phone });
+
     if (!user) {
-      return res.status(400).json({ message: 'User Email or Password is Incorrect', status: 400 });
+      return res.status(400).json({
+        message: 'User Phone or Password is Incorrect',
+        status: 400
+      });
     }
 
     const validateUser = await bcryptjs.compare(password, user.password);
+
     if (!validateUser) {
-      return res.status(400).json({ message: 'User Email or Password is Incorrect', status: 400 });
+      return res.status(400).json({
+        message: 'User Phone or Password is Incorrect',
+        status: 400
+      });
     }
 
     const payload = {
       userId: user._id,
-      email: user.email
+      phone: user.phone
     };
 
     const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+
     if (!JWT_SECRET_KEY) {
-      return res.status(500).json({ message: 'Server Configuration Error', status: 500 });
+      return res.status(500).json({
+        message: 'Server Configuration Error',
+        status: 500
+      });
     }
-    jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: 84600 }, async (err, token) => {
+
+    jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '7d' }, async (err, token) => {
       if (err) {
-        return res.status(500).json({ message: 'Token generation failed', status: 500 });
+        return res.status(500).json({
+          message: 'Token generation failed',
+          status: 500
+        });
       }
 
-      await Users.updateOne({ _id: user._id }, { $set: { token } });
+      await Users.updateOne(
+        { _id: user._id },
+        { $set: { token } }
+      );
 
       return res.status(200).json({
         user: {
           id: user._id,
+          phone: user.phone,
           email: user.email,
           fullName: user.fullName,
           userType: user.userType,
@@ -232,11 +289,16 @@ app.post('/api/login', async (req, res) => {
         status: 200
       });
     });
+
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: 'Internal Server Error', status: 500 });
+    return res.status(500).json({
+      message: 'Internal Server Error',
+      status: 500
+    });
   }
 });
+
 
 // Get user data
 app.post('/api/userData', authenticateToken, async (req, res) => {
@@ -270,40 +332,36 @@ app.post('/api/products', authenticateToken, upload.array('images', 5), async (r
     }
 
     const {
-      name, category, subCategory, description, price, unit, quantity,
-      state, city, address, harvestDate, expiryDate, isOrganic, tags
+       name, category, price, unit, quantity,
+      state, city, address, harvestDate, expiryDate,
     } = req.body;
 
-    const images = req.files ? req.files.map(file => file.path) : [];
 
     const product = new Product({
       farmerId: req.user._id,
       farmer: req.user._id,
       name,
       category,
-      subCategory,
-      description,
       price: Number(price),
       unit,
       quantity: Number(quantity),
       availableQuantity: Number(quantity),
-      images,
       location: { state, city, address },
       harvestDate: harvestDate ? new Date(harvestDate) : null,
       expiryDate: expiryDate ? new Date(expiryDate) : null,
-      isOrganic: isOrganic === 'true',
-      tags: tags ? tags.split(',') : []
     });
 
     await product.save();
 
+
     await sendNotification(
-      req.user._id,
-      'Product Added Successfully',
-      `Your product "${name}" has been listed successfully.`,
-      'product',
-      product._id
-    );
+    req.user._id,
+    req.user._id,
+    'उत्पाद सफलतापूर्वक जोड़ा गया',
+    `आपका उत्पाद "${name}" सफलतापूर्वक जोड़ दिया गया है।`,
+    'approval',
+    product._id
+);
 
     return res.status(201).json({ message: 'Product added successfully', product, status: 201 });
   } catch (error) {
@@ -363,6 +421,38 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
+
+// Delete api
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+  try {
+    console.log("Product ID:", req.params.id);
+    console.log("Logged in user ID:", req.user._id);
+
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        message: 'Product not found'
+      });
+    }
+
+    console.log("Product farmerId:", product.farmerId);
+
+    await Product.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      message: 'Product removed successfully'
+    });
+
+  } catch (error) {
+    console.error('Product delete error:', error);
+
+    return res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  }
+});
+
 // Order Management
 app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
@@ -405,20 +495,24 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
     // Send notifications
     await sendNotification(
-      req.user._id,
-      'Order Placed Successfully',
-      `Your order for ${product.name} has been placed successfully.`,
-      'order',
-      order._id
-    );
+  req.user._id,
+  req.user._id,
+  'ऑर्डर सफलतापूर्वक दिया गया',
+  `आपका ${product.name} का ऑर्डर सफलतापूर्वक दिया गया है।`,
+  'order_status',
+  product._id,
+  order._id
+);
 
-    await sendNotification(
-      product.farmerId,
-      'New Order Received',
-      `You have received a new order for ${product.name}.`,
-      'order',
-      order._id
-    );
+await sendNotification(
+  product.farmerId,
+  req.user._id,
+  'नया ऑर्डर प्राप्त हुआ',
+  `आपको ${product.name} का एक नया ऑर्डर प्राप्त हुआ है।`,
+  'order_status',
+  product._id,
+  order._id
+);
 
     return res.status(201).json({ message: 'Order placed successfully', order, status: 201 });
   } catch (error) {
@@ -464,7 +558,6 @@ app.patch('/api/orders/:id/status', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Order not found', status: 404 });
     }
 
-    // Check if user is authorized to update this order
     if (order.farmerId.toString() !== req.user._id.toString() &&
       order.buyerId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized', status: 403 });
@@ -478,13 +571,17 @@ app.patch('/api/orders/:id/status', authenticateToken, async (req, res) => {
       ? order.buyerId
       : order.farmerId;
 
-    await sendNotification(
-      notifyUserId,
-      'Order Status Updated',
-      `Your order status has been updated to ${status}.`,
-      'order',
-      order._id
-    );
+
+      await sendNotification(
+  notifyUserId,
+  req.user._id,
+  'ऑर्डर की स्थिति अपडेट की गई',
+  `आपके ऑर्डर की स्थिति "${status}" कर दी गई है।`,
+  'order_status',
+  order.productId,
+  order._id
+);
+
 
     return res.status(200).json({ message: 'Order status updated', order, status: 200 });
   } catch (error) {
@@ -573,79 +670,6 @@ app.get('/api/analytics', authenticateToken, async (req, res) => {
   }
 });
 
-// AI-Powered Market Insights
-app.get('/api/ai-insights', authenticateToken, async (req, res) => {
-  try {
-    const marketData = await MarketData.find().sort({ date: -1 }).limit(100);
-
-    // Get AI-powered insights
-    const insights = await analyticsService.generateMarketInsights(marketData);
-    const demandPatterns = await analyticsService.analyzeDemandPatterns(marketData);
-    const pricePredictions = await analyticsService.predictPriceTrends(marketData);
-
-    // Generate crop recommendations for farmers
-    let cropRecommendations = null;
-    if (req.user.userType === 'farmer') {
-      cropRecommendations = await analyticsService.generateCropRecommendations(
-        { state: req.user.state, city: req.user.city },
-        marketData
-      );
-    }
-
-    const aiInsights = {
-      insights: insights.insights,
-      recommendations: insights.recommendations,
-      demandPatterns,
-      pricePredictions,
-      cropRecommendations,
-      lastUpdated: new Date()
-    };
-
-    return res.status(200).json({ aiInsights, status: 200 });
-  } catch (error) {
-    console.error('AI insights error:', error);
-    return res.status(500).json({ message: 'Internal Server Error', status: 500 });
-  }
-});
-
-app.post('/api/ai-insights', authenticateToken, async (req, res) => {
-  try {
-    const { location, requestType, season, soilType } = req.body;
-
-    if (requestType === 'cropRecommendations') {
-      const recommendations = await analyticsService.generateLocationBasedCropRecommendations(
-        location,
-        season,
-        soilType
-      );
-      return res.status(200).json({ recommendations, status: 200 });
-    }
-
-    return res.status(400).json({ message: 'Invalid request type', status: 400 });
-  } catch (error) {
-    console.error('AI insights POST error:', error);
-    return res.status(500).json({ message: 'Internal Server Error', status: 500 });
-  }
-});
-
-// Market Sentiment Analysis
-app.post('/api/sentiment-analysis', authenticateToken, async (req, res) => {
-  try {
-    const { text } = req.body;
-
-    if (!text) {
-      return res.status(400).json({ message: 'Text is required for sentiment analysis', status: 400 });
-    }
-
-    const sentiment = await analyticsService.analyzeMarketSentiment(text);
-
-    return res.status(200).json({ sentiment, status: 200 });
-  } catch (error) {
-    console.error('Sentiment analysis error:', error);
-    return res.status(500).json({ message: 'Internal Server Error', status: 500 });
-  }
-});
-
 // Helper function for top products
 async function getTopProducts(farmerId, days) {
   const startDate = new Date();
@@ -729,22 +753,30 @@ app.post('/api/buy-request', authenticateToken, async (req, res) => {
     const { productId, quantity, message } = req.body;
 
     const product = await Product.findById(productId).populate('farmerId');
+
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({
+        message: 'Product not found'
+      });
     }
 
-    // Create notification for farmer
+    if (!product.farmerId) {
+      return res.status(400).json({
+        message: 'Farmer information not found for this product'
+      });
+    }
+
     const notification = new Notification({
       recipient: product.farmerId._id,
       sender: req.user._id,
       type: 'buy_request',
-      title: 'New Buy Request',
-      message: `${req.user.fullName} wants to buy ${quantity} units of ${product.name}`,
-      productId: productId,
+      title: 'नई खरीदारी का अनुरोध',
+      message: `${req.user.fullName} ${quantity} ${product.unit} ${product.name} खरीदना चाहते हैं।`,
+      productId: product._id,
       actionRequired: true,
       actionType: 'approve',
       metadata: {
-        quantity,
+        quantity: Number(quantity),
         message,
         buyerId: req.user._id,
         buyerName: req.user.fullName
@@ -753,21 +785,26 @@ app.post('/api/buy-request', authenticateToken, async (req, res) => {
 
     await notification.save();
 
-    // Emit real-time notification
-    io.emit('notification', {
+    io.to(product.farmerId._id.toString()).emit('notification', {
       recipient: product.farmerId._id.toString(),
-      notification: notification
+      notification
     });
 
-    res.json({
-      message: 'Buy request sent successfully',
-      notification: notification
+    return res.status(200).json({
+      message: 'खरीदारी का अनुरोध सफलतापूर्वक भेज दिया गया',
+      notification
     });
+
   } catch (error) {
-    console.error('Error creating buy request:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error('BUY REQUEST ERROR:', error);
+
+    return res.status(500).json({
+      message: error.message,
+      status: 500
+    });
   }
 });
+
 
 // Create contact request notification
 app.post('/api/contact-request', authenticateToken, async (req, res) => {
@@ -784,8 +821,8 @@ app.post('/api/contact-request', authenticateToken, async (req, res) => {
       recipient: product.farmerId._id,
       sender: req.user._id,
       type: 'contact_request',
-      title: 'Contact Request',
-      message: `${req.user.fullName} wants to contact you about ${product.name}`,
+      title: 'संपर्क करने का अनुरोध',
+      message: `${req.user.fullName} आपसे ${product.name} के बारे में संपर्क करना चाहते हैं।`,
       productId: productId,
       actionRequired: true,
       actionType: 'contact',
@@ -798,8 +835,6 @@ app.post('/api/contact-request', authenticateToken, async (req, res) => {
     });
 
     await notification.save();
-
-    // Emit real-time notification
     io.emit('notification', {
       recipient: product.farmerId._id.toString(),
       notification: notification
@@ -851,8 +886,8 @@ app.post('/api/approve-request', authenticateToken, async (req, res) => {
         recipient: notification.sender._id,
         sender: req.user._id,
         type: 'approval',
-        title: 'Buy Request Approved!',
-        message: `${req.user.fullName} approved your buy request for ${notification.productId.name}`,
+        title: 'खरीदारी का अनुरोध स्वीकार किया गया',
+        message: `${req.user.fullName} ने आपके ${notification.productId.name} के खरीदारी अनुरोध को स्वीकार कर लिया है।`,
         productId: notification.productId._id,
         orderId: order._id,
         actionRequired: true,
@@ -887,8 +922,8 @@ app.post('/api/approve-request', authenticateToken, async (req, res) => {
         recipient: notification.sender._id,
         sender: req.user._id,
         type: 'rejection',
-        title: 'Buy Request Declined',
-        message: `${req.user.fullName} declined your buy request for ${notification.productId.name}`,
+        title: 'खरीदारी का अनुरोध अस्वीकार किया गया',
+        message: `${req.user.fullName} ने आपके ${notification.productId.name} के खरीदारी अनुरोध को अस्वीकार कर दिया है।`,
         productId: notification.productId._id
       });
 
@@ -1029,8 +1064,8 @@ app.post('/api/wishlist/:id/contact', authenticateToken, async (req, res) => {
       recipient: wishlistItem.product.farmerId._id,
       sender: req.user._id,
       type: 'contact_request',
-      title: 'Contact Request from Wishlist',
-      message: `${req.user.fullName} wants to contact you about ${wishlistItem.product.name}`,
+      title: 'संपर्क करने का अनुरोध',
+      message: `${req.user.fullName} आपसे ${wishlistItem.product.name} के बारे में संपर्क करना चाहते हैं।`,
       productId: wishlistItem.product._id,
       actionRequired: true,
       actionType: 'contact',
@@ -1156,12 +1191,9 @@ app.post('/api/widthdraw', async (req, res) => {
   }
 });
 
-// Cron job to update market data (simulated)
 cron.schedule('0 6 * * *', async () => {
   try {
     console.log('Updating market data...');
-    // Here you would integrate with real market data APIs
-    // For now, we'll create some sample data
     const sampleProducts = ['Rice', 'Wheat', 'Tomatoes', 'Potatoes', 'Onions'];
     const states = ['Maharashtra', 'Punjab', 'Uttar Pradesh', 'Karnataka', 'Tamil Nadu'];
 

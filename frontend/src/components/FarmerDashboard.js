@@ -58,13 +58,13 @@ const FarmerDashboard = () => {
       harvestSchedule: 'Harvest Schedule'
     },
     hindi: {
-      overview: 'खेत अवलोकन',
-      marketplace: 'मेरे उत्पाद',
+      overview: 'खेत की जानकारी',
+      marketplace: 'मेरी फसलें',
       analytics: 'खेत विश्लेषण',
       notifications: 'सूचनाएं',
       profile: 'प्रोफ़ाइल',
       logout: 'लॉगआउट',
-      welcome: 'वापसी पर स्वागत है, किसान',
+      welcome: 'किसान पैनल',
       totalRevenue: 'कुल कमाई',
       totalOrders: 'प्राप्त आदेश',
       activeProducts: 'सक्रिय उत्पाद',
@@ -73,7 +73,7 @@ const FarmerDashboard = () => {
       recentOrders: 'हाल के आदेश',
       weather: 'मौसम',
       cropRecommendations: 'फसल सिफारिशें',
-      addProduct: 'उत्पाद जोड़ें',
+      addProduct: 'नई फसल जोड़ें',
       searchProducts: 'उत्पाद खोजें',
       filter: 'फ़िल्टर',
       language: 'भाषा',
@@ -86,6 +86,38 @@ const FarmerDashboard = () => {
   };
 
   const t = translations[language];
+
+
+const handleRemoveProduct = async (productId) => {
+  try {
+    const token = localStorage.getItem('token');
+
+    await axios.delete(
+      `http://localhost:8000/api/products/${productId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setProducts((prevProducts) =>
+      prevProducts.filter((product) => product._id !== productId)
+    );
+
+    toast.success('Product removed successfully');
+
+  } catch (error) {
+    console.log("DELETE ERROR:", error);
+    console.log("STATUS:", error.response?.status);
+    console.log("SERVER MESSAGE:", error.response?.data);
+
+    toast.error(
+      error.response?.data?.message || "Failed to remove product"
+    );
+  }
+};
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -503,37 +535,56 @@ const FarmerDashboard = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{height:"220px"}}>
-        {products.map((product) => (
-          <motion.div
-            key={product._id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+  {products.map((product) => (
+    <motion.div
+      key={product._id}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white rounded-lg shadow-md overflow-hidden h-full"
+    >
+      <div className="p-4 flex flex-col h-full">
+        <h3 className="text-lg font-semibold">{product.name}</h3>
+
+        <p className="text-gray-600 text-sm mb-2">
+          {product.description}
+        </p>
+
+        <div className="flex justify-between items-center">
+          <span className="text-xl font-bold text-green-600">
+            ₹{product.price} {product.unit}
+          </span>
+
+          <span className="text-sm text-gray-500">
+            {product.availableQuantity} {product.unit} available
+          </span>
+        </div>
+
+        <div className="mt-3">
+          <span className="text-sm text-gray-500">
+            Location: {product.location?.city}, {product.location?.state}
+          </span>
+        </div>
+
+        <div className="mt-3 flex space-x-2 mt-auto">
+          {/* <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+            Edit
+          </button> */}
+
+          <button
+            onClick={() => handleRemoveProduct(product._id)}
+            className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 mt-2"
           >
-            
-            <div className="p-4">
-              <h3 className="text-lg font-semibold">{product.name}</h3>
-              <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-green-600">₹{product.price}/{product.unit}</span>
-                <span className="text-sm text-gray-500">{product.availableQuantity} {product.unit} available</span>
-              </div>
-              <div className="mt-3">
-                <span className="text-sm text-gray-500">Location: {product.location?.city}, {product.location?.state}</span>
-              </div>
-              <div className="mt-3 flex space-x-2">
-                <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                  Edit
-                </button>
-                <button className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
-                  Remove
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+           फसल हटाएं
+          </button>
+        </div>
       </div>
+    </motion.div>
+  ))}
+</div> 
+      
+
+
     </div>
   );
 
@@ -666,7 +717,7 @@ const FarmerDashboard = () => {
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            {['overview', 'marketplace', 'analytics', 'notifications', 'ai-insights'].map((tab) => (
+            {['overview', 'marketplace', 'analytics', 'notifications'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}

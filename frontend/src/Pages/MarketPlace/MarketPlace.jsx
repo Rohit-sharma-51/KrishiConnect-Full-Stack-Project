@@ -110,14 +110,7 @@ const MarketPlace = () => {
       className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
     >
       <div className="relative">
-        {/* <img 
-          src={product.images && product.images.length > 0 ? product.images[0] : '/Crops/Rice.jpg'} 
-          alt={product.name || 'Product'}
-          className="w-full h-48 object-cover"
-          onError={(e) => {
-            e.target.src = '/Crops/Rice.jpg';
-          }} */}
-        {/* /> */}
+        
         <div className="absolute top-2 right-2">
            <span className={`px-2 py-1 rounded-full text-xs font-semibold 
             // product.isAvailable !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -133,12 +126,11 @@ const MarketPlace = () => {
           <span className="text-sm text-gray-500 capitalize">{product.category || 'General'}</span>
         </div>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description || 'No description available'}</p>
         
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center text-green-600 font-semibold">
             <span className="mr-1">₹</span>
-            {product.price || 0} / {product.unit || 'kg'}
+            {product.price || 0} {product.unit || 'kg'}
           </div>
           <div className="text-sm text-gray-500">
             Qty: {product.quantity || 0} {product.unit || 'kg'}
@@ -149,22 +141,19 @@ const MarketPlace = () => {
           <div className="flex items-center">
             <FaMapMarkerAlt className="mr-1" />
             {typeof product.location === 'string' ? product.location : 
-            //  product.location?.city ? `${product.location.city}, ${product.location.state}` : 
-            //  'Location not specified'
+            
            <p>Jewar, Uttar Pradesh</p> 
             }
           </div>
-          <div className="flex items-center">
-            <FaCalendarAlt className="mr-1" />
-            {product.harvestDate ? new Date(product.harvestDate).toLocaleDateString() : 'Date not specified'}
-          </div>
+          
         </div>
         
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            By:Rohit Sharma 
+            
+            By:{product.farmerName || product.farmerId?.fullName || 'Farmer'}
+
           </div>
-          {/* {product.farmerName || product.farmerId?.fullName || 'Farmer'} */}
           <div className="flex space-x-2">
             <button 
               onClick={() => setBuyModal(product)}
